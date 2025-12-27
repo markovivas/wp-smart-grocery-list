@@ -1,0 +1,43 @@
+.wpsgl-admin-wrap {
+    padding: 20px;
+}
+.wpsgl-filters {
+    margin-bottom: 20px;
+}
+.wpsgl-filter-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+.wpsgl-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.wpsgl-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.wpsgl-stat-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 16px;
+}
+.wpsgl-stat-card .stat-number {
+    font-size: 24px;
+    font-weight: 700;
+}
+.wpsgl-chart-container {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.wpsgl-data-table {
+    margin-top: 10px;
+}

@@ -1,0 +1,370 @@
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2196F3;
+    --danger-color: #f44336;
+    --warning-color: #ff9800;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --radius: 12px;
+    --transition: all 0.3s ease;
+}
+[data-theme="dark"] {
+    --primary-color: #66BB6A;
+    --secondary-color: #42A5F5;
+    --danger-color: #EF5350;
+    --warning-color: #FFA726;
+    --text-primary: #f5f5f5;
+    --text-secondary: #b0b0b0;
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #2d2d2d;
+    --border-color: #404040;
+    --shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.wpsgl-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+.wpsgl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+.wpsgl-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+.wpsgl-actions {
+    display: flex;
+    gap: 10px;
+}
+.wpsgl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius);
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.wpsgl-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.wpsgl-btn-secondary {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+.wpsgl-active-list {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+}
+.wpsgl-active-list h2 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+.wpsgl-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.wpsgl-list-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+.wpsgl-list-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+}
+.wpsgl-checkbox {
+    display: block;
+    position: relative;
+    cursor: pointer;
+}
+.wpsgl-checkbox input {
+    opacity: 0;
+    position: absolute;
+}
+.wpsgl-checkbox .checkmark {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    position: relative;
+    transition: var(--transition);
+}
+.wpsgl-checkbox input:checked ~ .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.wpsgl-checkbox input:checked ~ .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.wpsgl-item-content {
+    flex: 1;
+}
+.wpsgl-item-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+.wpsgl-item-details {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.wpsgl-item-details input,
+.wpsgl-item-details textarea {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: var(--transition);
+}
+.wpsgl-item-details input:focus,
+.wpsgl-item-details textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+.wpsgl-quantity {
+    width: 80px;
+}
+.wpsgl-price {
+    width: 100px;
+}
+.wpsgl-notes {
+    flex: 1;
+    min-width: 150px;
+    resize: vertical;
+}
+.wpsgl-item-actions {
+    display: flex;
+    gap: 5px;
+}
+.wpsgl-btn-more {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.wpsgl-btn-more:hover {
+    color: var(--primary-color);
+    background-color: var(--bg-secondary);
+}
+.wpsgl-list-total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color);
+    font-size: 18px;
+}
+.wpsgl-total-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+.wpsgl-categories h2 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+}
+.wpsgl-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+.wpsgl-category {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+.wpsgl-category-title {
+    margin: 0;
+}
+.wpsgl-category-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.wpsgl-category-toggle:hover {
+    background-color: #43a047;
+}
+.wpsgl-category-toggle .wpsgl-chevron {
+    transition: transform 0.3s ease;
+}
+.wpsgl-category-toggle[aria-expanded="true"] .wpsgl-chevron {
+    transform: rotate(180deg);
+}
+.wpsgl-category-products {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.wpsgl-product-btn {
+    padding: 10px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+}
+.wpsgl-product-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+.wpsgl-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.wpsgl-modal-content {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius);
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.wpsgl-modal h3 {
+    margin: 0 0 20px 0;
+    color: var(--text-primary);
+}
+.wpsgl-form-group {
+    margin-bottom: 20px;
+}
+.wpsgl-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.wpsgl-form-group input,
+.wpsgl-form-group select,
+.wpsgl-form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.wpsgl-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+@media (max-width: 768px) {
+    .wpsgl-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    .wpsgl-actions {
+        justify-content: center;
+    }
+    .wpsgl-item-details {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .wpsgl-item-details input,
+    .wpsgl-item-details textarea {
+        width: 100%;
+    }
+    .wpsgl-categories-grid {
+        grid-template-columns: 1fr;
+    }
+    .wpsgl-category-products {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.wpsgl-list-item {
+    animation: slideIn 0.3s ease;
+}
+.wpsgl-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+.wpsgl-empty-state p {
+    margin: 0;
+    font-size: 16px;
+}

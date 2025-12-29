@@ -220,6 +220,33 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
+.wpsgl-searchbar {
+    margin: 0 0 15px 0;
+    display: flex;
+}
+.wpsgl-searchbar input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: var(--transition);
+}
+.wpsgl-searchbar input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(76,175,80,0.1);
+}
+.wpsgl-search-empty {
+    display: none;
+    padding: 12px;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+}
 .wpsgl-category {
     background-color: var(--bg-secondary);
     border-radius: var(--radius);
@@ -359,6 +386,11 @@
 .wpsgl-list-item {
     animation: slideIn 0.3s ease;
 }
+.wpsgl-list-item.fade-out {
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
 .wpsgl-empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -367,4 +399,73 @@
 .wpsgl-empty-state p {
     margin: 0;
     font-size: 16px;
+}
+
+@media print {
+    @page { margin: 12mm; }
+    html, body { background: #fff !important; }
+    body * { visibility: hidden; }
+    .wpsgl-print-page, .wpsgl-print-page * { visibility: visible; }
+    .wpsgl-print-page {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-sizing: border-box;
+        border: 2px solid #000;
+        padding: 12mm;
+        background: #fff;
+    }
+    .wpsgl-container {
+        background: #fff;
+        box-shadow: none;
+    }
+    .wpsgl-header .wpsgl-actions,
+    .wpsgl-btn,
+    .wpsgl-btn-more,
+    .wpsgl-btn-delete,
+    .wpsgl-category,
+    .wpsgl-modal,
+    .wpsgl-active-list,
+    .wpsgl-categories {
+        display: none !important;
+    }
+    .wpsgl-print-view {
+        display: grid !important;
+        grid-template-columns: 80% 20%;
+        gap: 20px;
+        color: #000;
+    }
+    .wpsgl-print-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .wpsgl-print-table th,
+    .wpsgl-print-table td {
+        border: 1px solid #000;
+        padding: 8px;
+        font-size: 14px;
+        color: #000;
+        background: #fff;
+    }
+    .wpsgl-print-table th {
+        font-weight: 700;
+    }
+    .print-checkbox {
+        width: 16px;
+        height: 16px;
+        border: 1px solid #000;
+        display: inline-block;
+    }
+    .wpsgl-print-sidebar {
+        border: 1px solid #000;
+        min-height: 100%;
+        background: #fff;
+    }
+    .wpsgl-print-sidebar-title {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 10px;
+        border-bottom: 1px solid #000;
+    }
 }

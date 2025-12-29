@@ -44,14 +44,19 @@ class WPSGL_List_Manager {
     public function add_item_to_list($list_id, $item_data) {
         global $wpdb;
         $table_items = $wpdb->prefix . 'wpsgl_list_items';
-        return $wpdb->insert($table_items, [
+        $result = $wpdb->insert($table_items, [
             'list_id' => $list_id,
+            'product_id' => isset($item_data['product_id']) ? $item_data['product_id'] : null,
             'product_name' => $item_data['name'],
             'category' => $item_data['category'],
             'quantity' => $item_data['quantity'] ?? 1,
             'price' => $item_data['price'] ?? 0,
             'created_at' => current_time('mysql')
         ]);
+        if ($result) {
+            return $wpdb->insert_id;
+        }
+        return false;
     }
 
     public function update_list_item($item_id, $data) {

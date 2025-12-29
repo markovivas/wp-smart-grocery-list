@@ -6,6 +6,7 @@ class WPSGL_Database {
     private $table_products;
     private $table_lists;
     private $table_list_items;
+    private $table_categories;
 
     public function __construct() {
         global $wpdb;
@@ -14,6 +15,7 @@ class WPSGL_Database {
         $this->table_products = $wpdb->prefix . 'wpsgl_products';
         $this->table_lists = $wpdb->prefix . 'wpsgl_lists';
         $this->table_list_items = $wpdb->prefix . 'wpsgl_list_items';
+        $this->table_categories = $wpdb->prefix . 'wpsgl_categories';
     }
 
     public function create_tables() {
@@ -27,13 +29,15 @@ class WPSGL_Database {
             default_unit VARCHAR(50),
             image_id BIGINT(20) UNSIGNED,
             icon_svg TEXT,
+            barcode VARCHAR(64),
             is_custom BOOLEAN DEFAULT 0,
             user_id BIGINT(20) UNSIGNED,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY category (category),
-            KEY user_id (user_id)
+            KEY user_id (user_id),
+            UNIQUE KEY barcode (barcode)
         ) {$this->charset_collate};";
 
         $sql_lists = "CREATE TABLE IF NOT EXISTS {$this->table_lists} (
@@ -94,12 +98,27 @@ class WPSGL_Database {
             KEY user_id (user_id)
         ) {$this->charset_collate};";
 
+        $sql_categories = "CREATE TABLE IF NOT EXISTS {$this->table_categories} (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(100) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY name (name)
+        ) {$this->charset_collate};";
+
         dbDelta($sql_products);
         dbDelta($sql_lists);
         dbDelta($sql_list_items);
         dbDelta($sql_purchases);
+        dbDelta($sql_categories);
 
         $this->insert_default_products();
+        
+        // Sincroniza categorias existentes dos produtos para a tabela de categorias
+        $this->wpdb->query("INSERT IGNORE INTO {$this->table_categories} (name) 
+            SELECT DISTINCT category FROM {$this->table_products} 
+            WHERE category IS NOT NULL AND category != ''"
+        );
     }
 
     private function insert_default_products() {
@@ -122,6 +141,10 @@ class WPSGL_Database {
                                 'is_custom' => 0
                             ]);
                         }
+                        // Garante que a categoria exista na tabela de categorias
+                        $this->wpdb->query($this->wpdb->prepare(
+                            "INSERT IGNORE INTO {$this->table_categories} (name) VALUES (%s)", $category
+                        ));
                     }
                 }
             }
@@ -129,6 +152,16 @@ class WPSGL_Database {
     }
 
     public function init() {
+        $column = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'barcode'",
+            $this->wpdb->dbname,
+            $this->table_products
+        ));
+        if (!$column) {
+            $this->wpdb->query("ALTER TABLE {$this->table_products} ADD COLUMN barcode VARCHAR(64) NULL");
+            // Índice único permite múltiplos NULL em MySQL
+            $this->wpdb->query("ALTER TABLE {$this->table_products} ADD UNIQUE KEY barcode (barcode)");
+        }
     }
 
     public function get_products($category = null, $search = null) {
@@ -198,5 +231,84 @@ class WPSGL_Database {
             $end_date
         );
         return $this->wpdb->get_results($query);
+    }
+
+    public function get_categories() {
+        // Busca da tabela de categorias se existir
+        if ($this->wpdb->get_var("SHOW TABLES LIKE '{$this->table_categories}'") === $this->table_categories) {
+            return $this->wpdb->get_col("SELECT name FROM {$this->table_categories} ORDER BY name ASC");
+        }
+        // Fallback para a tabela de produtos
+        return $this->wpdb->get_col("SELECT DISTINCT category FROM {$this->table_products} WHERE category IS NOT NULL AND category <> '' ORDER BY category ASC");
+    }
+
+    public function get_product_by_barcode($barcode) {
+        if (!$barcode) return null;
+        return $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->table_products} WHERE barcode = %s LIMIT 1",
+            $barcode
+        ));
+    }
+
+    public function get_products_with_barcode($category = null) {
+        $where = ['barcode IS NOT NULL', "barcode <> ''"];
+        $params = [];
+        if ($category) {
+            $where[] = 'category = %s';
+            $params[] = $category;
+        }
+        $where_clause = implode(' AND ', $where);
+        $query = "SELECT * FROM {$this->table_products} WHERE {$where_clause} ORDER BY name ASC";
+        if ($params) {
+            $query = $this->wpdb->prepare($query, $params);
+        }
+        return $this->wpdb->get_results($query);
+    }
+
+    public function ensure_category_exists($name) {
+        $name = sanitize_text_field($name);
+        if ($name === '') return false;
+        // Garante que a tabela exista
+        if ($this->wpdb->get_var("SHOW TABLES LIKE '{$this->table_categories}'") !== $this->table_categories) {
+            return false;
+        }
+        $exists = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT id FROM {$this->table_categories} WHERE name = %s LIMIT 1", $name
+        ));
+        if (!$exists) {
+            return $this->wpdb->insert($this->table_categories, ['name' => $name]) !== false;
+        }
+        return true;
+    }
+
+    // Métodos de Gerenciamento de Categorias
+    public function get_all_categories_objects() {
+        return $this->wpdb->get_results("SELECT * FROM {$this->table_categories} ORDER BY name ASC");
+    }
+
+    public function add_category($name) {
+        return $this->wpdb->insert($this->table_categories, ['name' => sanitize_text_field($name)]);
+    }
+
+    public function update_category($id, $name) {
+        $name = sanitize_text_field($name);
+        // Pega o nome antigo para atualizar os produtos
+        $old_name = $this->wpdb->get_var($this->wpdb->prepare("SELECT name FROM {$this->table_categories} WHERE id = %d", $id));
+        
+        $updated = $this->wpdb->update($this->table_categories, ['name' => $name], ['id' => $id]);
+        
+        if ($updated !== false && $old_name && $old_name !== $name) {
+            // Atualiza a string da categoria na tabela de produtos para manter consistência
+            $this->wpdb->update(
+                $this->table_products, 
+                ['category' => $name], 
+                ['category' => $old_name]
+            );
+        }
+        return $updated;
+    }
+
+    public function delete_category($id) {
+        return $this->wpdb->delete($this->table_categories, ['id' => $id]);
     }
 }

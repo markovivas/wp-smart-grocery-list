@@ -29,6 +29,7 @@ class WP_Smart_Grocery_List {
     public static function activate() {
         $db = new WPSGL_Database();
         $db->create_tables();
+        self::import_initial_data();
     }
 
     public static function deactivate() {
@@ -165,6 +166,15 @@ class WP_Smart_Grocery_List {
             'wpsgl-products',
             [$this->product_manager, 'render_admin_products']
         );
+        
+        add_submenu_page(
+            'wpsgl-dashboard',
+            __('Categorias', 'wp-smart-grocery'),
+            __('Categorias', 'wp-smart-grocery'),
+            'manage_options',
+            'wpsgl-categories',
+            [$this, 'render_categories_page']
+        );
 
         add_submenu_page(
             'wpsgl-dashboard',
@@ -176,17 +186,95 @@ class WP_Smart_Grocery_List {
         );
     }
 
+    public function render_categories_page() {
+        // Processar ações do formulário
+        if (isset($_POST['wpsgl_action']) && check_admin_referer('wpsgl_manage_categories')) {
+            $action = $_POST['wpsgl_action'];
+            
+            if ($action === 'add_category' && !empty($_POST['category_name'])) {
+                $this->database->add_category($_POST['category_name']);
+                echo '<div class="notice notice-success is-dismissible"><p>' . __('Categoria adicionada com sucesso!', 'wp-smart-grocery') . '</p></div>';
+            }
+            
+            if ($action === 'update_category' && !empty($_POST['category_name']) && !empty($_POST['category_id'])) {
+                $this->database->update_category(intval($_POST['category_id']), $_POST['category_name']);
+                echo '<div class="notice notice-success is-dismissible"><p>' . __('Categoria atualizada com sucesso!', 'wp-smart-grocery') . '</p></div>';
+            }
+            
+            if ($action === 'delete_category' && !empty($_POST['category_id'])) {
+                $this->database->delete_category(intval($_POST['category_id']));
+                echo '<div class="notice notice-success is-dismissible"><p>' . __('Categoria excluída.', 'wp-smart-grocery') . '</p></div>';
+            }
+        }
+
+        // Buscar dados para a view
+        $categories = $this->database->get_all_categories_objects();
+        $current_category = null;
+        
+        if (isset($_GET['edit'])) {
+            $edit_id = intval($_GET['edit']);
+            foreach ($categories as $cat) {
+                if ($cat->id == $edit_id) {
+                    $current_category = $cat;
+                    break;
+                }
+            }
+        }
+
+        include WPSGL_PLUGIN_DIR . 'templates/admin/categories.php';
+    }
+
     public function render_settings_page() {
         include WPSGL_PLUGIN_DIR . 'templates/admin/settings.php';
     }
 
     private function get_products_data() {
-        $json_file = WPSGL_PLUGIN_DIR . 'data/produtos.json';
-        if (file_exists($json_file)) {
-            $json_data = file_get_contents($json_file);
-            return json_decode($json_data, true);
+        $data = ['categorias' => []];
+        $categories = $this->database->get_categories();
+        if (!empty($categories)) {
+            foreach ($categories as $cat) {
+                $products = $this->database->get_products($cat);
+                $names = [];
+                if ($products) {
+                    foreach ($products as $p) {
+                        $names[] = $p->name;
+                    }
+                }
+                $data['categorias'][$cat] = $names;
+            }
         }
-        return [];
+        return $data;
+    }
+
+    private static function import_initial_data() {
+        global $wpdb;
+        $json_file = WPSGL_PLUGIN_DIR . 'data/produtos.json';
+
+        if (!file_exists($json_file)) {
+            return;
+        }
+
+        $data = json_decode(file_get_contents($json_file), true);
+        
+        // IMPORTANTE: Verifique se o nome da tabela corresponde ao criado em class-database.php
+        $table_name = $wpdb->prefix . 'wpsgl_products';
+
+        // Verifica se a tabela existe
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
+            // Verifica se está vazia para não duplicar dados
+            $count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+            
+            if ($count == 0 && !empty($data['categorias'])) {
+                foreach ($data['categorias'] as $category => $products) {
+                    foreach ($products as $product) {
+                        $wpdb->insert(
+                            $table_name,
+                            ['name' => $product, 'category' => $category]
+                        );
+                    }
+                }
+            }
+        }
     }
 }
 

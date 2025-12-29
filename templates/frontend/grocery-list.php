@@ -2,8 +2,8 @@
 $list_manager = new WPSGL_List_Manager();
 $current_list = $list_manager->get_current_list();
 $list_items = $current_list ? $list_manager->get_list_items($current_list->id) : [];
-$json_file = WPSGL_PLUGIN_DIR . 'data/produtos.json';
-$products_data = file_exists($json_file) ? json_decode(file_get_contents($json_file), true) : [];
+$product_manager = new WPSGL_Product_Manager();
+$categories = $product_manager->get_categories();
 ?>
 <div class="wpsgl-container" data-theme="light">
     <header class="wpsgl-header">
@@ -15,6 +15,10 @@ $products_data = file_exists($json_file) ? json_decode(file_get_contents($json_f
             </button>
             <button class="wpsgl-btn wpsgl-btn-toggle-theme">
                 <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+            </button>
+            <button class="wpsgl-btn wpsgl-btn-print">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 9V2h12v7h2a2 2 0 0 1 2 2v6h-4v3H8v-3H4v-6a2 2 0 0 1 2-2h0zm2-5v5h8V4H8zm0 11v5h8v-5H8z"/></svg>
+                <?php _e('Imprimir', 'wp-smart-grocery'); ?>
             </button>
         </div>
     </header>
@@ -44,6 +48,9 @@ $products_data = file_exists($json_file) ? json_decode(file_get_contents($json_f
                         <button class="wpsgl-btn-more" title="<?php _e('Mais opções', 'wp-smart-grocery'); ?>">
                             <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="6" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="18" r="2" fill="currentColor"/></svg>
                         </button>
+                        <button class="wpsgl-btn-delete" title="<?php _e('Excluir item', 'wp-smart-grocery'); ?>">
+                            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6a1 1 0 0 1 1 1v2h4v2h-1l-1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 8H4V6h4V4a1 1 0 0 1 1-1zm2 5v10h2V8h-2z"/></svg>
+                        </button>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -65,9 +72,14 @@ $products_data = file_exists($json_file) ? json_decode(file_get_contents($json_f
     </section>
     <section class="wpsgl-categories">
         <h2><?php _e('Categorias', 'wp-smart-grocery'); ?></h2>
+        <div class="wpsgl-searchbar">
+            <input id="wpsgl-search" type="text" placeholder="<?php _e('Buscar produto ou categoria', 'wp-smart-grocery'); ?>">
+        </div>
+        <div class="wpsgl-search-empty" style="display:none;"><?php _e('Nenhum resultado encontrado.', 'wp-smart-grocery'); ?></div>
         <div class="wpsgl-categories-grid">
-            <?php if (isset($products_data['categorias'])): ?>
-                <?php foreach ($products_data['categorias'] as $category_name => $products): ?>
+            <?php if (!empty($categories)): ?>
+                <?php foreach ($categories as $category_name): ?>
+                <?php $products = $product_manager->get_product_rows_by_category($category_name); ?>
                 <div class="wpsgl-category">
                     <h3 class="wpsgl-category-title">
                         <button class="wpsgl-category-toggle" aria-expanded="false">
@@ -77,14 +89,52 @@ $products_data = file_exists($json_file) ? json_decode(file_get_contents($json_f
                     </h3>
                     <div class="wpsgl-category-products" style="max-height:0;padding:0;">
                         <?php foreach ($products as $product): ?>
-                        <button class="wpsgl-product-btn" data-product="<?php echo esc_attr($product); ?>" data-category="<?php echo esc_attr($category_name); ?>">
-                            <?php echo esc_html($product); ?>
+                        <button class="wpsgl-product-btn" data-product="<?php echo esc_attr($product->name); ?>" data-category="<?php echo esc_attr($category_name); ?>" data-barcode="<?php echo esc_attr($product->barcode); ?>">
+                            <?php echo esc_html($product->name); ?>
                         </button>
                         <?php endforeach; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+        </div>
+    </section>
+    <section class="wpsgl-print-view">
+        <div class="wpsgl-print-page">
+        <div class="wpsgl-print-main">
+            <table class="wpsgl-print-table">
+                <thead>
+                    <tr>
+                        <th><?php _e('Checkbox', 'wp-smart-grocery'); ?></th>
+                        <th><?php _e('Produto', 'wp-smart-grocery'); ?></th>
+                        <th><?php _e('Quantidade', 'wp-smart-grocery'); ?></th>
+                        <th><?php _e('Valor', 'wp-smart-grocery'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($list_items)): ?>
+                        <?php foreach ($list_items as $item): ?>
+                            <tr>
+                                <td><span class="print-checkbox"></span></td>
+                                <td><?php echo esc_html($item->product_name); ?></td>
+                                <td><?php echo esc_html($item->quantity); ?></td>
+                                <td><?php echo esc_html(number_format(floatval($item->price), 2, ',', '.')); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td><span class="print-checkbox"></span></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <div class="wpsgl-print-sidebar">
+            <div class="wpsgl-print-sidebar-title"><?php _e('Valor', 'wp-smart-grocery'); ?></div>
+        </div>
         </div>
     </section>
 </div>
@@ -107,8 +157,8 @@ $products_data = file_exists($json_file) ? json_decode(file_get_contents($json_f
             <div class="wpsgl-form-group">
                 <label><?php _e('Categoria', 'wp-smart-grocery'); ?></label>
                 <select name="category">
-                    <?php foreach (array_keys($products_data['categorias'] ?? []) as $cat): ?>
-                    <option value="<?php echo esc_attr($cat); ?>"><?php echo esc_html($cat); ?></option>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?php echo esc_attr($cat); ?>"><?php echo esc_html($cat); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

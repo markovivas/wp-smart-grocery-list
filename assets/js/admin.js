@@ -49,5 +49,34 @@
              })
              .fail(function(){ alert('Erro na requisição.'); });
         });
+        $(document).on('click', '#wpsgl-export-btn', function(){
+            const url = wpsgl_admin.ajax_url + '?action=wpsgl_export_products&nonce=' + encodeURIComponent(wpsgl_admin.nonce);
+            window.location.href = url;
+        });
+        const $importForm = $('#wpsgl-import-form');
+        if ($importForm.length) {
+            $importForm.on('submit', function(e){
+                e.preventDefault();
+                const formData = new FormData(this);
+                formData.append('action', 'wpsgl_import_products');
+                formData.append('nonce', wpsgl_admin.nonce);
+                $.ajax({
+                    url: wpsgl_admin.ajax_url,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false
+                }).done(function(resp){
+                    if (resp && resp.success) {
+                        alert('Importação concluída. Inseridos: ' + resp.data.inserted + ', Atualizados: ' + resp.data.updated + ', Erros: ' + resp.data.errors);
+                        location.reload();
+                    } else {
+                        alert(resp && resp.data && resp.data.message ? resp.data.message : 'Erro na importação.');
+                    }
+                }).fail(function(){
+                    alert('Erro na requisição.');
+                });
+            });
+        }
     });
 })(jQuery);

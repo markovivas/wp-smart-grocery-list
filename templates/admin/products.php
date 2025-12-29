@@ -1,11 +1,18 @@
 <div class="wrap">
     <h1><?php _e('Produtos', 'wp-smart-grocery'); ?></h1>
-    <p><?php _e('Edite e exclua produtos cadastrados.', 'wp-smart-grocery'); ?></p>
+    <p><?php _e('Edite, exclua, importe e exporte produtos cadastrados.', 'wp-smart-grocery'); ?></p>
     <?php
         $db = new WPSGL_Database();
         $categories = $db->get_categories();
         $products = $db->get_products();
     ?>
+    <div class="wpsgl-admin-actions">
+        <button id="wpsgl-export-btn" class="button"><?php _e('Exportar CSV', 'wp-smart-grocery'); ?></button>
+        <form id="wpsgl-import-form" enctype="multipart/form-data" style="display:inline-block;margin-left:10px;">
+            <input type="file" name="file" accept=".csv" required>
+            <button type="submit" class="button button-primary"><?php _e('Importar CSV', 'wp-smart-grocery'); ?></button>
+        </form>
+    </div>
     <?php if (!empty($products)): ?>
         <table class="wp-list-table widefat fixed striped">
             <thead>

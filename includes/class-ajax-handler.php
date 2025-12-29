@@ -13,6 +13,8 @@ class WPSGL_Ajax_Handler {
         add_action('wp_ajax_wpsgl_delete_item', [$this, 'delete_item']);
         add_action('wp_ajax_wpsgl_lookup_barcode', [$this, 'lookup_barcode']);
         add_action('wp_ajax_wpsgl_openfoodfacts', [$this, 'openfoodfacts']);
+        add_action('wp_ajax_wpsgl_export_products', [$this, 'export_products']);
+        add_action('wp_ajax_wpsgl_import_products', [$this, 'import_products']);
     }
 
     public function add_to_list() {
@@ -192,6 +194,109 @@ class WPSGL_Ajax_Handler {
         } else {
             wp_send_json_error(['message' => __('Erro ao excluir produto.', 'wp-smart-grocery')]);
         }
+    }
+
+    public function export_products() {
+        if (!wp_verify_nonce($_GET['nonce'] ?? '', 'wpsgl_nonce')) {
+            wp_die(__('Nonce inválido', 'wp-smart-grocery'));
+        }
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Permissão insuficiente', 'wp-smart-grocery'));
+        }
+        $db = new WPSGL_Database();
+        $products = $db->get_products();
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=wp-smart-grocery-products.csv');
+        echo "\xEF\xBB\xBF";
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['id','name','category','unit_price','default_unit','barcode','is_custom']);
+        if ($products) {
+            foreach ($products as $p) {
+                fputcsv($out, [
+                    intval($p->id),
+                    $p->name,
+                    $p->category,
+                    isset($p->unit_price) ? $p->unit_price : '',
+                    isset($p->default_unit) ? $p->default_unit : '',
+                    isset($p->barcode) ? $p->barcode : '',
+                    isset($p->is_custom) ? intval($p->is_custom) : 0
+                ]);
+            }
+        }
+        fclose($out);
+        wp_die();
+    }
+
+    public function import_products() {
+        check_ajax_referer('wpsgl_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Permissão insuficiente.', 'wp-smart-grocery')], 403);
+        }
+        if (!isset($_FILES['file']) || !is_uploaded_file($_FILES['file']['tmp_name'])) {
+            wp_send_json_error(['message' => __('Arquivo inválido.', 'wp-smart-grocery')]);
+        }
+        $tmp = $_FILES['file']['tmp_name'];
+        $mime = $_FILES['file']['type'];
+        $size = filesize($tmp);
+        if ($size <= 0 || $size > 5 * 1024 * 1024) {
+            wp_send_json_error(['message' => __('Tamanho de arquivo não suportado.', 'wp-smart-grocery')]);
+        }
+        $db = new WPSGL_Database();
+        $inserted = 0; $updated = 0; $errors = 0;
+        $handle = fopen($tmp, 'r');
+        if (!$handle) {
+            wp_send_json_error(['message' => __('Falha ao abrir arquivo.', 'wp-smart-grocery')]);
+        }
+        $header = fgetcsv($handle, 0, ',');
+        $map = [];
+        $expected = ['id','name','category','unit_price','default_unit','barcode','is_custom'];
+        if (is_array($header)) {
+            foreach ($header as $i => $col) {
+                $key = strtolower(trim($col));
+                $map[$key] = $i;
+            }
+        }
+        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+            $name = isset($map['name']) ? sanitize_text_field($row[$map['name']]) : '';
+            $category = isset($map['category']) ? sanitize_text_field($row[$map['category']]) : '';
+            $unit_price = isset($map['unit_price']) ? floatval($row[$map['unit_price']]) : null;
+            $default_unit = isset($map['default_unit']) ? sanitize_text_field($row[$map['default_unit']]) : '';
+            $barcode = isset($map['barcode']) ? sanitize_text_field($row[$map['barcode']]) : '';
+            $id = isset($map['id']) ? intval($row[$map['id']]) : 0;
+            if ($name === '' || $category === '') { $errors++; continue; }
+            $db->ensure_category_exists($category);
+            $data = [
+                'name' => $name,
+                'category' => $category
+            ];
+            if ($unit_price !== null) $data['unit_price'] = $unit_price;
+            if ($default_unit !== '') $data['default_unit'] = $default_unit;
+            if ($barcode !== '') $data['barcode'] = $barcode;
+            if ($id > 0) {
+                $data['id'] = $id;
+                $res = $db->save_product($data);
+                if ($res !== false) $updated++; else $errors++;
+            } else if ($barcode !== '') {
+                $existing = $db->get_product_by_barcode($barcode);
+                if ($existing) {
+                    $data['id'] = intval($existing->id);
+                    $res = $db->save_product($data);
+                    if ($res !== false) $updated++; else $errors++;
+                } else {
+                    $data['is_custom'] = 1;
+                    $data['user_id'] = get_current_user_id();
+                    $res = $db->save_product($data);
+                    if ($res) $inserted++; else $errors++;
+                }
+            } else {
+                $data['is_custom'] = 1;
+                $data['user_id'] = get_current_user_id();
+                $res = $db->save_product($data);
+                if ($res) $inserted++; else $errors++;
+            }
+        }
+        fclose($handle);
+        wp_send_json_success(['inserted' => $inserted, 'updated' => $updated, 'errors' => $errors]);
     }
 
     public function delete_item() {

@@ -64,9 +64,6 @@ $reports = new WPSGL_Reports();
             <div class="stat-label"><?php _e('Média por Item', 'wp-smart-grocery'); ?></div>
         </div>
     </div>
-    <div class="wpsgl-chart-container">
-        <canvas id="wpsgl-chart"></canvas>
-    </div>
     <div class="wpsgl-data-table">
         <table class="wp-list-table widefat fixed striped">
             <thead>
@@ -101,6 +98,9 @@ $reports = new WPSGL_Reports();
             </tbody>
         </table>
     </div>
+    <div class="wpsgl-chart-container compact">
+        <canvas id="wpsgl-chart" style="height:240px;"></canvas>
+    </div>
 </div>
 <script>
 jQuery(document).ready(function($) {
@@ -117,12 +117,17 @@ jQuery(document).ready(function($) {
         success: function(response) {
             if (response.success) {
                 new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: response.data,
                     options: {
                         responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '60%',
                         plugins: {
-                            legend: { position: 'right' },
+                            legend: { 
+                                position: 'bottom',
+                                labels: { boxWidth: 10, color: '#555', font: { size: 11 } }
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -134,7 +139,8 @@ jQuery(document).ready(function($) {
                                     }
                                 }
                             }
-                        }
+                        },
+                        layout: { padding: 4 }
                     }
                 });
             }

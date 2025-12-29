@@ -33,10 +33,17 @@
 }
 .wpsgl-chart-container {
     background: #fff;
-    border: 1px solid #eee;
+    border: 1px dashed #e6e6e6;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 16px auto 20px auto;
+    max-width: 720px;
+    box-shadow: none;
+}
+.wpsgl-chart-container.compact {
+    max-width: 560px;
+    padding: 10px;
     border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
 }
 .wpsgl-data-table {
     margin-top: 10px;

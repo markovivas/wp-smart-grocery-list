@@ -75,6 +75,10 @@ $categories = $product_manager->get_categories();
         <div class="wpsgl-searchbar">
             <input id="wpsgl-search" type="text" placeholder="<?php _e('Buscar produto ou categoria', 'wp-smart-grocery'); ?>">
         </div>
+        <div class="wpsgl-view-toggle">
+            <button type="button" class="active" data-view="grid"><?php _e('Grid', 'wp-smart-grocery'); ?></button>
+            <button type="button" data-view="list"><?php _e('Lista', 'wp-smart-grocery'); ?></button>
+        </div>
         <div class="wpsgl-search-empty" style="display:none;"><?php _e('Nenhum resultado encontrado.', 'wp-smart-grocery'); ?></div>
         <div class="wpsgl-categories-grid">
             <?php if (!empty($categories)): ?>
@@ -84,6 +88,7 @@ $categories = $product_manager->get_categories();
                     <h3 class="wpsgl-category-title">
                         <button class="wpsgl-category-toggle" aria-expanded="false">
                             <span><?php echo esc_html($category_name); ?></span>
+                            <span class="wpsgl-badge"><?php echo intval(count($products)); ?></span>
                             <svg class="wpsgl-chevron" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                         </button>
                     </h3>

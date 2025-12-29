@@ -22,7 +22,9 @@
                 newListButton: document.querySelector('.wpsgl-btn-new-list'),
                 themeButton: document.querySelector('.wpsgl-btn-toggle-theme'),
                 printButton: document.querySelector('.wpsgl-btn-print'),
-                searchInput: document.getElementById('wpsgl-search')
+                searchInput: document.getElementById('wpsgl-search'),
+                viewToggleButtons: document.querySelectorAll('.wpsgl-view-toggle button'),
+                categoriesGrid: document.querySelector('.wpsgl-categories-grid')
             };
             this.currentItem = null;
         },
@@ -82,6 +84,23 @@
             if (this.elements.searchInput) {
                 this.elements.searchInput.addEventListener('input', this.filterProducts.bind(this));
             }
+            if (this.elements.viewToggleButtons && this.elements.viewToggleButtons.length) {
+                this.elements.viewToggleButtons.forEach(btn => {
+                    btn.addEventListener('click', this.changeViewMode.bind(this));
+                });
+            }
+        },
+        changeViewMode: function(e) {
+            const btn = e.currentTarget;
+            const mode = btn.getAttribute('data-view');
+            this.elements.viewToggleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (!this.elements.categoriesGrid) return;
+            if (mode === 'list') {
+                this.elements.categoriesGrid.classList.add('compact-list');
+            } else {
+                this.elements.categoriesGrid.classList.remove('compact-list');
+            }
         },
         addProductToList: function(e) {
             const button = e.currentTarget;
@@ -135,7 +154,7 @@
                     if (q !== '') {
                         toggle && toggle.setAttribute('aria-expanded', 'true');
                         if (productsContainer) {
-                            productsContainer.style.maxHeight = productsContainer.scrollHeight + 'px';
+                            productsContainer.style.maxHeight = 'none';
                             productsContainer.style.padding = '15px';
                         }
                     } else {
@@ -203,7 +222,7 @@
                 products.style.maxHeight = '0';
                 products.style.padding = '0';
             } else {
-                products.style.maxHeight = products.scrollHeight + 'px';
+                products.style.maxHeight = 'none';
                 products.style.padding = '15px';
             }
         },

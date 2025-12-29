@@ -38,14 +38,29 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
+    padding: 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary-color), #43a047);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
 }
 .wpsgl-header h1 {
     margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary-color);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.wpsgl-header h1::before {
+    content: '';
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2s-.9-2-2-2m10 0c-1.1 0-2 .9-2 2s.9 2 2 2s1.99-.9 1.99-2s-.89-2-1.99-2M7.16 14.26L7.2 14h8.62c.75 0 1.4-.41 1.74-1.03l3.86-7.01c.21-.36.06-.82-.3-1.03c-.12-.08-.27-.12-.42-.12H6.21l-.31-1.59C5.82 1.51 5.43 1.2 5 1.2H2c-.55 0-1 .45-1 1s.45 1 1 1h2.2l3.09 12.72c.1.49.53.84 1.03.84H19c.55 0 1-.45 1-1s-.45-1-1-1z'/%3E%3C/svg%3E");
+    background-size: 28px 28px;
+    background-repeat: no-repeat;
 }
 .wpsgl-actions {
     display: flex;
@@ -55,19 +70,45 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 12px 22px;
     border: none;
-    border-radius: var(--radius);
-    background-color: var(--primary-color);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color), #43a047);
     color: white;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: var(--transition);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 .wpsgl-btn:hover {
-    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+}
+.wpsgl-btn svg {
+    transition: transform 0.2s ease;
+}
+.wpsgl-btn:hover svg {
+    transform: scale(1.08);
+}
+.wpsgl-btn::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 60%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+.wpsgl-btn:active::after {
+    width: 220%;
+    height: 220%;
+    opacity: 1;
+    transition: width 0.5s ease, height 0.5s ease, opacity 1s ease;
 }
 .wpsgl-btn-secondary {
     background-color: var(--bg-secondary);
@@ -99,11 +140,13 @@
     background-color: var(--bg-primary);
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
     transition: var(--transition);
 }
 .wpsgl-list-item:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+    box-shadow: 0 10px 20px rgba(76, 175, 80, 0.12);
+    transform: translateY(-1px);
 }
 .wpsgl-checkbox {
     display: block;
@@ -126,6 +169,7 @@
 .wpsgl-checkbox input:checked ~ .checkmark {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+    animation: pulse 0.35s ease;
 }
 .wpsgl-checkbox input:checked ~ .checkmark::after {
     content: '';
@@ -215,24 +259,96 @@
     margin: 0 0 20px 0;
     font-size: 20px;
 }
+.wpsgl-categories {
+    margin-bottom: 30px;
+}
+.wpsgl-print-view {
+    margin-top: 24px;
+}
+.wpsgl-print-page {
+    display: grid;
+    grid-template-columns: 70% 30%;
+    gap: 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    padding: 20px;
+}
+.wpsgl-print-main {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.wpsgl-print-sidebar {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+}
+.wpsgl-print-sidebar-title {
+    font-size: 16px;
+    font-weight: 700;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+}
 .wpsgl-categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
+.wpsgl-categories-grid.compact-list {
+    grid-template-columns: 1fr;
+}
+.wpsgl-categories-grid.compact-list .wpsgl-category-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: none;
+}
+.wpsgl-categories-grid.compact-list .wpsgl-product-btn {
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
 .wpsgl-searchbar {
     margin: 0 0 15px 0;
     display: flex;
 }
+.wpsgl-view-toggle {
+    display: inline-flex;
+    gap: 6px;
+    margin: 0 0 12px 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 4px;
+}
+.wpsgl-view-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.wpsgl-view-toggle button.active {
+    background: var(--bg-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
 .wpsgl-searchbar input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 12px 10px 40px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-size: 14px;
     transition: var(--transition);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5l1.5-1.5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+    background-size: 18px 18px;
 }
 .wpsgl-searchbar input:focus {
     outline: none;
@@ -252,9 +368,24 @@
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .wpsgl-category-title {
     margin: 0;
+}
+.wpsgl-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    margin-left: 8px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
 }
 .wpsgl-category-toggle {
     width: 100%;
@@ -272,6 +403,7 @@
 }
 .wpsgl-category-toggle:hover {
     background-color: #43a047;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 .wpsgl-category-toggle .wpsgl-chevron {
     transition: transform 0.3s ease;
@@ -279,13 +411,33 @@
 .wpsgl-category-toggle[aria-expanded="true"] .wpsgl-chevron {
     transform: rotate(180deg);
 }
+.wpsgl-category:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+}
+.wpsgl-category-toggle[aria-expanded="true"] {
+    filter: brightness(1.05);
+}
 .wpsgl-category-products {
     padding: 15px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
+}
+.wpsgl-category-products::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.wpsgl-category-products::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+.wpsgl-category-products::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), #43a047);
+    border-radius: 10px;
+    border: 2px solid var(--bg-secondary);
 }
 .wpsgl-product-btn {
     padding: 10px;
@@ -303,6 +455,10 @@
     color: white;
     border-color: var(--primary-color);
     transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(76,175,80,0.16);
+}
+.wpsgl-product-btn.wpsgl-added {
+    animation: glow 0.8s ease;
 }
 .wpsgl-modal {
     display: none;
@@ -364,6 +520,9 @@
     .wpsgl-actions {
         justify-content: center;
     }
+    .wpsgl-header h1 {
+        font-size: 22px;
+    }
     .wpsgl-item-details {
         flex-direction: column;
         align-items: stretch;
@@ -382,6 +541,16 @@
 @keyframes slideIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+ @keyframes glow {
+    0% { box-shadow: 0 0 0 rgba(76,175,80,0); }
+    50% { box-shadow: 0 0 0 10px rgba(76,175,80,0.15); }
+    100% { box-shadow: 0 0 0 rgba(76,175,80,0); }
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
 }
 .wpsgl-list-item {
     animation: slideIn 0.3s ease;
@@ -415,6 +584,9 @@
         border: 2px solid #000;
         padding: 12mm;
         background: #fff;
+        display: grid;
+        grid-template-columns: 80% 20%;
+        gap: 12mm;
     }
     .wpsgl-container {
         background: #fff;
@@ -431,9 +603,6 @@
         display: none !important;
     }
     .wpsgl-print-view {
-        display: grid !important;
-        grid-template-columns: 80% 20%;
-        gap: 20px;
         color: #000;
     }
     .wpsgl-print-table {
@@ -443,13 +612,17 @@
     .wpsgl-print-table th,
     .wpsgl-print-table td {
         border: 1px solid #000;
-        padding: 8px;
+        padding: 10px;
         font-size: 14px;
         color: #000;
         background: #fff;
     }
     .wpsgl-print-table th {
         font-weight: 700;
+        background: #eee;
+    }
+    .wpsgl-print-table tbody tr:nth-child(even) td {
+        background: #fafafa;
     }
     .print-checkbox {
         width: 16px;
@@ -461,10 +634,15 @@
         border: 1px solid #000;
         min-height: 100%;
         background: #fff;
+        border-radius: 0;
     }
     .wpsgl-print-sidebar-title {
         font-size: 16px;
         font-weight: 700;
+        padding: 10px;
+        border-bottom: 1px solid #000;
+    }
+}
         padding: 10px;
         border-bottom: 1px solid #000;
     }

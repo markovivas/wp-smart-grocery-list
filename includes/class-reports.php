@@ -21,10 +21,7 @@ class WPSGL_Reports {
         $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : date('Y-m-01');
         $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : date('Y-m-d');
         $category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
-        if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-            $this->export_csv($start_date, $end_date);
-            return;
-        }
+        // Exportação via admin-ajax (wpsgl_export_purchases)
         $purchases = $this->database->get_purchases($start_date, $end_date, $category);
         $stats = $this->database->get_purchase_stats($start_date, $end_date);
         $product_manager = new WPSGL_Product_Manager();
@@ -58,38 +55,5 @@ class WPSGL_Reports {
         return sprintf('#%s', substr($hash, 0, 6));
     }
 
-    public function export_csv($start_date, $end_date) {
-        $purchases = $this->database->get_purchases($start_date, $end_date);
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename=relatorio-compras-' . $start_date . '-' . $end_date . '.csv');
-        $output = fopen('php://output', 'w');
-        fputcsv($output, [
-            __('Data', 'wp-smart-grocery'),
-            __('Hora', 'wp-smart-grocery'),
-            __('Produto', 'wp-smart-grocery'),
-            __('Categoria', 'wp-smart-grocery'),
-            __('Quantidade', 'wp-smart-grocery'),
-            __('Unidade', 'wp-smart-grocery'),
-            __('Preço Unitário', 'wp-smart-grocery'),
-            __('Total', 'wp-smart-grocery'),
-            __('Loja', 'wp-smart-grocery'),
-            __('Observações', 'wp-smart-grocery')
-        ], ';');
-        foreach ($purchases as $purchase) {
-            fputcsv($output, [
-                $purchase->purchase_date,
-                $purchase->purchase_time,
-                $purchase->product_name,
-                $purchase->category,
-                $purchase->quantity,
-                $purchase->unit,
-                number_format($purchase->unit_price, 2, ',', '.'),
-                number_format($purchase->total_price, 2, ',', '.'),
-                $purchase->store,
-                $purchase->notes
-            ], ';');
-        }
-        fclose($output);
-        exit;
-    }
+    // Export removido: agora realizado via WPSGL_Ajax_Handler::export_purchases
 }

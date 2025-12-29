@@ -27,12 +27,12 @@ $reports = new WPSGL_Reports();
                 <div class="wpsgl-filter-group">
                     <button type="submit" class="button button-primary"><?php _e('Filtrar', 'wp-smart-grocery'); ?></button>
                     <a href="<?php echo add_query_arg([
-                        'page' => 'wpsgl-reports',
-                        'export' => 'csv',
+                        'action' => 'wpsgl_export_purchases',
+                        'nonce' => wp_create_nonce('wpsgl_nonce'),
                         'start_date' => $start_date,
                         'end_date' => $end_date,
                         'category' => $category
-                    ], admin_url('admin.php')); ?>" class="button"><?php _e('Exportar CSV', 'wp-smart-grocery'); ?></a>
+                    ], admin_url('admin-ajax.php')); ?>" class="button"><?php _e('Exportar CSV', 'wp-smart-grocery'); ?></a>
                 </div>
             </div>
         </form>

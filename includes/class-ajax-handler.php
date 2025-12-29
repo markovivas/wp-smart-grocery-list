@@ -15,6 +15,7 @@ class WPSGL_Ajax_Handler {
         add_action('wp_ajax_wpsgl_openfoodfacts', [$this, 'openfoodfacts']);
         add_action('wp_ajax_wpsgl_export_products', [$this, 'export_products']);
         add_action('wp_ajax_wpsgl_import_products', [$this, 'import_products']);
+        add_action('wp_ajax_wpsgl_export_purchases', [$this, 'export_purchases']);
     }
 
     public function add_to_list() {
@@ -297,6 +298,54 @@ class WPSGL_Ajax_Handler {
         }
         fclose($handle);
         wp_send_json_success(['inserted' => $inserted, 'updated' => $updated, 'errors' => $errors]);
+    }
+
+    public function export_purchases() {
+        if (!wp_verify_nonce($_GET['nonce'] ?? '', 'wpsgl_nonce')) {
+            wp_die(__('Nonce inválido', 'wp-smart-grocery'));
+        }
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Permissão insuficiente', 'wp-smart-grocery'));
+        }
+        $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : date('Y-m-01');
+        $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : date('Y-m-d');
+        $category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
+        $db = new WPSGL_Database();
+        $purchases = $db->get_purchases($start_date, $end_date, $category);
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=relatorio-compras-' . $start_date . '-' . $end_date . '.csv');
+        echo "\xEF\xBB\xBF";
+        $out = fopen('php://output', 'w');
+        fputcsv($out, [
+            __('Data', 'wp-smart-grocery'),
+            __('Hora', 'wp-smart-grocery'),
+            __('Produto', 'wp-smart-grocery'),
+            __('Categoria', 'wp-smart-grocery'),
+            __('Quantidade', 'wp-smart-grocery'),
+            __('Unidade', 'wp-smart-grocery'),
+            __('Preço Unitário', 'wp-smart-grocery'),
+            __('Total', 'wp-smart-grocery'),
+            __('Loja', 'wp-smart-grocery'),
+            __('Observações', 'wp-smart-grocery')
+        ]);
+        if ($purchases) {
+            foreach ($purchases as $purchase) {
+                fputcsv($out, [
+                    $purchase->purchase_date,
+                    $purchase->purchase_time,
+                    $purchase->product_name,
+                    $purchase->category,
+                    $purchase->quantity,
+                    $purchase->unit,
+                    number_format($purchase->unit_price, 2, ',', '.'),
+                    number_format($purchase->total_price, 2, ',', '.'),
+                    $purchase->store,
+                    $purchase->notes
+                ]);
+            }
+        }
+        fclose($out);
+        wp_die();
     }
 
     public function delete_item() {

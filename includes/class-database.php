@@ -265,6 +265,16 @@ class WPSGL_Database {
         return $this->wpdb->get_results($query);
     }
 
+    public function get_product_by_id($id) {
+        return $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->table_products} WHERE id = %d LIMIT 1", intval($id)
+        ));
+    }
+
+    public function delete_product($id) {
+        return $this->wpdb->delete($this->table_products, ['id' => intval($id)]);
+    }
+
     public function ensure_category_exists($name) {
         $name = sanitize_text_field($name);
         if ($name === '') return false;

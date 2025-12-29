@@ -41,3 +41,12 @@
 .wpsgl-data-table {
     margin-top: 10px;
 }
+.button-danger {
+    background: #d63638;
+    color: #fff;
+    border-color: #b32d2e;
+}
+.button-danger:hover {
+    background: #b32d2e;
+    border-color: #8a2425;
+}

@@ -8,6 +8,8 @@ class WPSGL_Ajax_Handler {
         add_action('wp_ajax_wpsgl_get_reports', [$this, 'get_reports']);
         add_action('wp_ajax_nopriv_wpsgl_save_product', [$this, 'save_product_guest']);
         add_action('wp_ajax_wpsgl_save_catalog_product', [$this, 'save_catalog_product']);
+        add_action('wp_ajax_wpsgl_update_catalog_product', [$this, 'update_catalog_product']);
+        add_action('wp_ajax_wpsgl_delete_catalog_product', [$this, 'delete_catalog_product']);
         add_action('wp_ajax_wpsgl_delete_item', [$this, 'delete_item']);
         add_action('wp_ajax_wpsgl_lookup_barcode', [$this, 'lookup_barcode']);
         add_action('wp_ajax_wpsgl_openfoodfacts', [$this, 'openfoodfacts']);
@@ -135,6 +137,60 @@ class WPSGL_Ajax_Handler {
             wp_send_json_success(['message' => __('Produto cadastrado.', 'wp-smart-grocery')]);
         } else {
             wp_send_json_error(['message' => __('Erro ao cadastrar produto.', 'wp-smart-grocery')]);
+        }
+    }
+
+    public function update_catalog_product() {
+        check_ajax_referer('wpsgl_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Permissão insuficiente.', 'wp-smart-grocery')], 403);
+        }
+        $id = intval($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            wp_send_json_error(['message' => __('ID inválido.', 'wp-smart-grocery')]);
+        }
+        $name = sanitize_text_field($_POST['name'] ?? '');
+        $category = sanitize_text_field($_POST['category'] ?? '');
+        $unit_price = isset($_POST['unit_price']) ? floatval($_POST['unit_price']) : null;
+        $default_unit = sanitize_text_field($_POST['default_unit'] ?? '');
+        $barcode = sanitize_text_field($_POST['barcode'] ?? '');
+        if ($name === '' || $category === '') {
+            wp_send_json_error(['message' => __('Nome e categoria são obrigatórios.', 'wp-smart-grocery')]);
+        }
+        $db = new WPSGL_Database();
+        $db->ensure_category_exists($category);
+        $data = [
+            'id' => $id,
+            'name' => $name,
+            'category' => $category,
+            'unit_price' => $unit_price,
+            'default_unit' => $default_unit,
+            'barcode' => $barcode ?: null,
+            'updated_at' => current_time('mysql')
+        ];
+        $result = $db->save_product($data);
+        if ($result !== false) {
+            wp_send_json_success(['message' => __('Produto atualizado.', 'wp-smart-grocery')]);
+        } else {
+            wp_send_json_error(['message' => __('Erro ao atualizar produto.', 'wp-smart-grocery')]);
+        }
+    }
+
+    public function delete_catalog_product() {
+        check_ajax_referer('wpsgl_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Permissão insuficiente.', 'wp-smart-grocery')], 403);
+        }
+        $id = intval($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            wp_send_json_error(['message' => __('ID inválido.', 'wp-smart-grocery')]);
+        }
+        $db = new WPSGL_Database();
+        $deleted = $db->delete_product($id);
+        if ($deleted) {
+            wp_send_json_success(['message' => __('Produto excluído.', 'wp-smart-grocery')]);
+        } else {
+            wp_send_json_error(['message' => __('Erro ao excluir produto.', 'wp-smart-grocery')]);
         }
     }
 
